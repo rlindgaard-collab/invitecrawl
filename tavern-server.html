@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="da">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tjeneren i Old Barrel Tavern</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="tavern-page">
+    <div class="tavern-contents">
+      <header>
+        <h1 data-scene-heading>Tjeneren nærmer sig dit bord</h1>
+        <p data-scene-description>
+          Hun smiler varmt og tager din bestilling, mens lyset fra stearinlysene spiller i hendes øjne.
+        </p>
+      </header>
+      <figure class="tavern-photo tavern-photo--server" data-scene-photo>
+        <img
+          data-scene-image
+          src="tavern-server.jpg"
+          alt="Rød-håret tjener står ved bordet med et lys foran sig."
+          loading="lazy"
+        />
+        <div class="tavern-glows" aria-hidden="true">
+          <span class="tavern-glow tavern-glow--front"></span>
+          <span class="tavern-glow tavern-glow--back"></span>
+          <span class="tavern-glow tavern-glow--sconce-left"></span>
+          <span class="tavern-glow tavern-glow--sconce-right"></span>
+          <span class="tavern-glow tavern-glow--letter-ambient"></span>
+          <span class="tavern-glow tavern-glow--letter-open-glow"></span>
+        </div>
+      </figure>
+      <div class="tavern-actions">
+        <button class="tavern-action" type="button" data-order-button>
+          Bestil en øl
+        </button>
+        <a class="tavern-action" href="door.html">Tilbage til døren</a>
+      </div>
+      <div class="tavern-response" data-oath-section hidden aria-hidden="true">
+        <p class="tavern-response__prompt">
+          Hun spørger om du er broder i nattenskonger ...
+        </p>
+        <button class="tavern-action tavern-action--primary" type="button" data-oath-confirm>
+          Ja, det er korrekt
+        </button>
+      </div>
+      <div class="tavern-response tavern-response--letter" data-letter-section hidden aria-hidden="true">
+        <p class="tavern-response__prompt">Vil du åbne brevet?</p>
+        <button class="tavern-action tavern-action--primary" type="button" data-letter-open>
+          Åbn brevet
+        </button>
+      </div>
+      <div class="tavern-celebration" data-celebrate-section hidden aria-hidden="true">
+        <p class="tavern-celebration__prompt">Hun lægger hånden på din skulder og venter på dit svar.</p>
+        <a class="tavern-action tavern-action--primary" href="event-info.html">
+          Jeg glæder mig
+        </a>
+      </div>
+      <p
+        class="tavern-order-message"
+        data-order-message
+        role="status"
+        aria-live="polite"
+        hidden
+      >
+        Hun balancerer et fyldt ølkrus og sætter det foran dig.
+      </p>
+    </div>
+    <script>
+      (() => {
+        const sceneHeading = document.querySelector("[data-scene-heading]");
+        const sceneDescription = document.querySelector("[data-scene-description]");
+        const sceneImage = document.querySelector("[data-scene-image]");
+        const scenePhoto = document.querySelector("[data-scene-photo]");
+        const orderButton = document.querySelector("[data-order-button]");
+        const orderMessage = document.querySelector("[data-order-message]");
+        const oathSection = document.querySelector("[data-oath-section]");
+        const oathConfirmButton = document.querySelector("[data-oath-confirm]");
+        const letterSection = document.querySelector("[data-letter-section]");
+        const letterOpenButton = document.querySelector("[data-letter-open]");
+        const celebrateSection = document.querySelector("[data-celebrate-section]");
+
+        if (
+          !sceneHeading ||
+          !sceneDescription ||
+          !sceneImage ||
+          !scenePhoto ||
+          !orderButton ||
+          !orderMessage ||
+          !oathSection ||
+          !oathConfirmButton ||
+          !letterSection ||
+          !letterOpenButton ||
+          !celebrateSection
+        ) {
+          return;
+        }
+
+        const SCENES = {
+          waiting: {
+            heading: "Tjeneren nærmer sig dit bord",
+            description:
+              "Hun smiler varmt og tager din bestilling, mens lyset fra stearinlysene spiller i hendes øjne.",
+            image: {
+              src: "tavern-server.jpg",
+              alt: "Rød-håret tjener står ved bordet med et lys foran sig.",
+            },
+            photoModifier: null,
+          },
+          served: {
+            heading: "Din øl bliver serveret",
+            description:
+              "Hun vender tilbage med et skummende krus og skubber det roligt hen over bordet.",
+            image: {
+              src: "tavern-server-beer.jpg",
+              alt: "Tjeneren rækker dig et fyldt ølkrus i det varme lys.",
+            },
+            message: "Hun balancerer et fyldt ølkrus og sætter det foran dig.",
+            photoModifier: null,
+          },
+          letter: {
+            heading: "Et hemmeligt brev",
+            description: "Hun smiler anerkendende og rækker dig et forsejlet brev.",
+            image: {
+              src: "tavern-server-letter.jpg",
+              alt: "Tjeneren holder et brev frem mod dig ved bordet.",
+            },
+            message: 'Hun hvisker: "Jeg skulle hilse fra broder Ras."',
+            photoModifier: "tavern-photo--server-letter",
+          },
+          letterOpen: {
+            heading: "Brevet afslører sin hemmelighed",
+            description: "Du folder brevet ud, mens den skjulte besked afsløres i flakkende lys.",
+            image: {
+              src: "tavern-server-letter-open.jpg",
+              alt: "Brev åbnet på bordet, oplyst af et stearinlys.",
+            },
+            message: 'Hun hvisker: "Håber at I får en god aften."',
+            photoModifier: "tavern-photo--server-letter-open",
+          },
+        };
+
+        let currentScene = "waiting";
+
+        const orderButtonDefaultText = orderButton.textContent.trim();
+        const oathConfirmDefaultText = oathConfirmButton.textContent.trim();
+        const letterOpenDefaultText = letterOpenButton.textContent.trim();
+        let activePhotoModifier = null;
+        let oathRevealTimeoutId = null;
+
+        const setOathSectionVisibility = (isVisible) => {
+          oathSection.hidden = !isVisible;
+          oathSection.setAttribute("aria-hidden", String(!isVisible));
+          oathConfirmButton.disabled = !isVisible;
+        };
+
+        const setLetterPromptVisibility = (isVisible) => {
+          letterSection.hidden = !isVisible;
+          letterSection.setAttribute("aria-hidden", String(!isVisible));
+        };
+
+        const setCelebrateVisibility = (isVisible) => {
+          celebrateSection.hidden = !isVisible;
+          celebrateSection.setAttribute("aria-hidden", String(!isVisible));
+        };
+
+        const resetOathPrompt = () => {
+          if (oathRevealTimeoutId) {
+            window.clearTimeout(oathRevealTimeoutId);
+            oathRevealTimeoutId = null;
+          }
+          setOathSectionVisibility(false);
+          oathConfirmButton.textContent = oathConfirmDefaultText;
+        };
+
+        const showOathPrompt = () => {
+          resetOathPrompt();
+          oathRevealTimeoutId = window.setTimeout(() => {
+            setOathSectionVisibility(true);
+          }, 600);
+        };
+
+        const setOrderButtonVisibility = (isVisible) => {
+          orderButton.hidden = !isVisible;
+          orderButton.setAttribute("aria-hidden", String(!isVisible));
+          orderButton.style.display = isVisible ? "" : "none";
+          orderButton.tabIndex = isVisible ? 0 : -1;
+        };
+
+        const applyScene = (sceneName) => {
+          const scene = SCENES[sceneName];
+          if (!scene) {
+            return;
+          }
+
+          sceneHeading.textContent = scene.heading;
+          sceneDescription.textContent = scene.description;
+          sceneImage.src = scene.image.src;
+          sceneImage.alt = scene.image.alt;
+
+          if (scene.message) {
+            orderMessage.textContent = scene.message;
+            orderMessage.hidden = false;
+          } else {
+            orderMessage.textContent = "";
+            orderMessage.hidden = true;
+          }
+
+          if (sceneName === "served") {
+            showOathPrompt();
+          } else {
+            resetOathPrompt();
+          }
+
+          setOrderButtonVisibility(sceneName === "waiting");
+
+          if (sceneName === "letter") {
+            setLetterPromptVisibility(true);
+            letterOpenButton.textContent = letterOpenDefaultText;
+            letterOpenButton.removeAttribute("disabled");
+          } else {
+            setLetterPromptVisibility(false);
+            letterOpenButton.setAttribute("disabled", "true");
+          }
+
+          setCelebrateVisibility(sceneName === "letterOpen");
+
+          if (activePhotoModifier) {
+            scenePhoto.classList.remove(activePhotoModifier);
+            activePhotoModifier = null;
+          }
+          if (scene.photoModifier) {
+            scenePhoto.classList.add(scene.photoModifier);
+            activePhotoModifier = scene.photoModifier;
+          }
+
+          orderButton.textContent = orderButtonDefaultText;
+
+          currentScene = sceneName;
+        };
+
+        orderButton.addEventListener("click", () => {
+          if (currentScene === "served") {
+            return;
+          }
+
+          applyScene("served");
+          orderButton.setAttribute("disabled", "true");
+        });
+
+        oathConfirmButton.addEventListener("click", () => {
+          applyScene("letter");
+          orderButton.setAttribute("disabled", "true");
+        });
+
+        letterOpenButton.addEventListener("click", () => {
+          applyScene("letterOpen");
+          letterOpenButton.textContent = "Brevet ligger åbent";
+          letterOpenButton.setAttribute("disabled", "true");
+        });
+
+        applyScene("waiting");
+      })();
+    </script>
+  </body>
+</html>

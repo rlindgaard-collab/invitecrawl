@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="da">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invitation til Old Barrel</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preload" href="brev2.png" as="image" />
+    <link rel="preload" href="brev3.png" as="image" />
+    <link rel="prefetch" href="door.html" as="document" />
+  </head>
+  <body class="letter-page">
+    <div class="letter-scene">
+      <header class="letter-header">
+        <h1>En budbringer banker på</h1>
+        <p role="status" aria-live="polite" class="letter-instructions">
+          Tryk på brevet for at bryde seglet.
+        </p>
+      </header>
+      <main>
+        <figure class="letter-envelope" aria-labelledby="letter-caption">
+          <img
+            class="letter-image"
+            src="brev1.png"
+            alt="Forseglet brev med vokssegl på et træbord."
+            loading="lazy"
+          />
+          <figcaption id="letter-caption" class="sr-only">
+            Et brev fra Old Barrel Tavern
+          </figcaption>
+          <button type="button" class="letter-toggle">
+            <span class="sr-only">Åbn brevet</span>
+          </button>
+        </figure>
+      </main>
+      <a class="letter-cta" href="door.html" aria-hidden="true">Gå til Old Barrel</a>
+    </div>
+    <script src="letter.js" defer></script>
+  </body>
+</html>

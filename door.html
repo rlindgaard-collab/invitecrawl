@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Old Bar Door</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="app-header">
+        <h1>Du er ankommet til</h1>
+        <p>Old Barrel Tavern</p>
+      </header>
+      <main class="scene">
+        <figure class="door-photo" aria-labelledby="door-caption">
+          <img
+            class="door-image door-image--closed"
+            src="door-closed.jpg"
+            alt="Lukket taverne-dør"
+            loading="lazy"
+          />
+          <img
+            class="door-image door-image--open"
+            src="door-open.jpg"
+            alt="Åben taverne-dør med lys indefra"
+            loading="lazy"
+          />
+          <div class="door-glows" aria-hidden="true">
+            <span class="door-glow door-glow--lantern"></span>
+          </div>
+          <figcaption id="door-caption" class="door-caption" aria-live="polite"></figcaption>
+          <a class="door-photo__link" href="tavern.html" hidden>
+            <span class="sr-only">Træd ind i Old Barrel Tavern</span>
+          </a>
+        </figure>
+      </main>
+      <section class="door-controls" aria-labelledby="door-controls-heading">
+        <h2 id="door-controls-heading" class="sr-only">Betjening</h2>
+        <form class="door-form" autocomplete="off" novalidate>
+          <label class="door-form__label" for="door-password">Adgangskode</label>
+          <div class="door-form__row">
+            <input
+              class="door-form__input"
+              id="door-password"
+              type="password"
+              name="password"
+              required
+              minlength="4"
+              aria-describedby="door-feedback"
+            />
+            <button class="door-form__submit" type="submit">Åbn døren</button>
+          </div>
+        </form>
+        <button class="door-close" type="button" hidden>Luk døren</button>
+        <p id="door-feedback" class="door-feedback" role="status" aria-live="polite"></p>
+      </section>
+    </div>
+    <script src="app.js" defer></script>
+  </body>
+</html>
