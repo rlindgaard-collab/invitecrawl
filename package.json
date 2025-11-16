@@ -1,0 +1,13 @@
+{
+  "name": "invitation-crawl",
+  "version": "1.0.0",
+  "description": "Interactive invitation crawl game",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}
