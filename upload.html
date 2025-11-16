@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Billeder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .upload-area {
+            border: 2px dashed #666;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            background: #2a2a2a;
+        }
+        .upload-area:hover {
+            border-color: #999;
+            background: #333;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .btn {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background: #45a049;
+        }
+        #fileList {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .file-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #333;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .file-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        .status.success {
+            background: #4CAF50;
+            display: block;
+        }
+        .status.error {
+            background: #f44336;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload Billeder til Old Barrel</h1>
+    <p>Upload alle 11 billeder her. De vil blive konverteret til base64 og gemt i projektet.</p>
+
+    <div class="upload-area" id="dropArea">
+        <p>Træk billeder hertil eller klik for at vælge</p>
+        <button class="btn" onclick="document.getElementById('fileInput').click()">Vælg Filer</button>
+        <input type="file" id="fileInput" multiple accept="image/*">
+    </div>
+
+    <div id="fileList"></div>
+
+    <button class="btn" id="processBtn" style="display:none; margin-top: 20px;" onclick="processImages()">
+        Konverter og Gem Billeder
+    </button>
+
+    <div id="status" class="status"></div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const dropArea = document.getElementById('dropArea');
+        const fileList = document.getElementById('fileList');
+        const processBtn = document.getElementById('processBtn');
+        const statusDiv = document.getElementById('status');
+        let selectedFiles = [];
+
+        fileInput.addEventListener('change', handleFiles);
+
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.style.borderColor = '#999';
+        });
+
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.style.borderColor = '#666';
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.style.borderColor = '#666';
+            const files = Array.from(e.dataTransfer.files);
+            handleFiles({ target: { files } });
+        });
+
+        function handleFiles(e) {
+            selectedFiles = Array.from(e.target.files);
+            displayFiles();
+            processBtn.style.display = selectedFiles.length > 0 ? 'block' : 'none';
+        }
+
+        function displayFiles() {
+            fileList.innerHTML = '';
+            selectedFiles.forEach(file => {
+                const div = document.createElement('div');
+                div.className = 'file-item';
+
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+
+                const name = document.createElement('span');
+                name.textContent = file.name;
+
+                div.appendChild(img);
+                div.appendChild(name);
+                fileList.appendChild(div);
+            });
+        }
+
+        async function processImages() {
+            statusDiv.textContent = 'Konverterer billeder...';
+            statusDiv.className = 'status';
+            statusDiv.style.display = 'block';
+
+            const imageData = {};
+
+            for (const file of selectedFiles) {
+                const base64 = await fileToBase64(file);
+                const cleanName = file.name.toLowerCase();
+                imageData[cleanName] = base64;
+            }
+
+            localStorage.setItem('oldBarrelImages', JSON.stringify(imageData));
+
+            statusDiv.textContent = `✓ ${selectedFiles.length} billeder konverteret og gemt! Gå tilbage til hovedsiden.`;
+            statusDiv.className = 'status success';
+
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 2000);
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
+</body>
+</html>
