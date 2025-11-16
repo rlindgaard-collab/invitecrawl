@@ -195,8 +195,12 @@
 
           sceneHeading.textContent = scene.heading;
           sceneDescription.textContent = scene.description;
-          sceneImage.src = scene.image.src;
+          sceneImage.setAttribute('data-img', scene.image.img);
           sceneImage.alt = scene.image.alt;
+
+          const SUPABASE_URL = 'https://ilenzrfwfqnifqukrpgg.supabase.co';
+          const BUCKET = 'old-barrel-images';
+          sceneImage.src = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${scene.image.img.toLowerCase()}`;
 
           if (scene.message) {
             orderMessage.textContent = scene.message;

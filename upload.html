@@ -40,6 +40,10 @@
         .btn:hover {
             background: #45a049;
         }
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
         #fileList {
             margin-top: 20px;
             text-align: left;
@@ -73,11 +77,16 @@
             background: #f44336;
             display: block;
         }
+        .progress {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #aaa;
+        }
     </style>
 </head>
 <body>
     <h1>Upload Billeder til Old Barrel</h1>
-    <p>Upload alle 11 billeder her. De vil blive konverteret til base64 og gemt i projektet.</p>
+    <p>Upload alle 11 billeder her. De vil blive uploadet til Supabase Storage.</p>
 
     <div class="upload-area" id="dropArea">
         <p>Træk billeder hertil eller klik for at vælge</p>
@@ -87,18 +96,26 @@
 
     <div id="fileList"></div>
 
-    <button class="btn" id="processBtn" style="display:none; margin-top: 20px;" onclick="processImages()">
-        Konverter og Gem Billeder
+    <button class="btn" id="processBtn" style="display:none; margin-top: 20px;" onclick="uploadImages()">
+        Upload Billeder
     </button>
 
     <div id="status" class="status"></div>
+    <div id="progress" class="progress"></div>
 
-    <script>
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+        const supabaseUrl = 'https://ilenzrfwfqnifqukrpgg.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlsZW56cmZ3ZnFuaWZxdWtycGdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzMTY3MjIsImV4cCI6MjA3ODg5MjcyMn0.zgY9sHTQwY1gfazUsj4ipHdQnw6jtQjUtWFVVawznvU';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
         const fileInput = document.getElementById('fileInput');
         const dropArea = document.getElementById('dropArea');
         const fileList = document.getElementById('fileList');
         const processBtn = document.getElementById('processBtn');
         const statusDiv = document.getElementById('status');
+        const progressDiv = document.getElementById('progress');
         let selectedFiles = [];
 
         fileInput.addEventListener('change', handleFiles);
@@ -116,6 +133,7 @@
             e.preventDefault();
             dropArea.style.borderColor = '#666';
             const files = Array.from(e.dataTransfer.files);
+            fileInput.files = e.dataTransfer.files;
             handleFiles({ target: { files } });
         });
 
@@ -143,37 +161,49 @@
             });
         }
 
-        async function processImages() {
-            statusDiv.textContent = 'Konverterer billeder...';
+        window.uploadImages = async function() {
+            processBtn.disabled = true;
+            statusDiv.textContent = 'Uploader billeder...';
             statusDiv.className = 'status';
             statusDiv.style.display = 'block';
+            progressDiv.textContent = '';
 
-            const imageData = {};
+            let uploaded = 0;
+            const total = selectedFiles.length;
 
-            for (const file of selectedFiles) {
-                const base64 = await fileToBase64(file);
-                const cleanName = file.name.toLowerCase();
-                imageData[cleanName] = base64;
+            try {
+                for (const file of selectedFiles) {
+                    uploaded++;
+                    progressDiv.textContent = `Uploader ${uploaded}/${total}: ${file.name}`;
+
+                    const filePath = file.name.toLowerCase();
+
+                    const { error } = await supabase.storage
+                        .from('old-barrel-images')
+                        .upload(filePath, file, {
+                            cacheControl: '3600',
+                            upsert: true
+                        });
+
+                    if (error) {
+                        throw error;
+                    }
+                }
+
+                statusDiv.textContent = `✓ ${total} billeder uploadet! Gå tilbage til hovedsiden.`;
+                statusDiv.className = 'status success';
+                progressDiv.textContent = '';
+
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+            } catch (error) {
+                statusDiv.textContent = `✗ Fejl: ${error.message}`;
+                statusDiv.className = 'status error';
+                processBtn.disabled = false;
+                console.error('Upload error:', error);
             }
-
-            localStorage.setItem('oldBarrelImages', JSON.stringify(imageData));
-
-            statusDiv.textContent = `✓ ${selectedFiles.length} billeder konverteret og gemt! Gå tilbage til hovedsiden.`;
-            statusDiv.className = 'status success';
-
-            setTimeout(() => {
-                window.location.href = '/';
-            }, 2000);
-        }
-
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
-        }
+        };
     </script>
 </body>
 </html>
