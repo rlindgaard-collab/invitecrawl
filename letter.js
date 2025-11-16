@@ -34,7 +34,9 @@ const initLetterExperience = () => {
 
   const applyStep = (step) => {
     const details = LETTER_STEPS[step];
-    letterImage.src = details.src;
+    const SUPABASE_URL = 'https://ilenzrfwfqnifqukrpgg.supabase.co';
+    const BUCKET = 'old-barrel-images';
+    letterImage.src = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${details.src.toLowerCase()}`;
     letterImage.alt = details.alt;
     instructions.textContent = details.instruction;
     if (srLabel) {
