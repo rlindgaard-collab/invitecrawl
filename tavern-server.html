@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tjeneren i Old Barrel Tavern</title>
     <link rel="stylesheet" href="styles.css" />
-    <script src="image-loader.js"></script>
   </head>
   <body class="tavern-page">
     <div class="tavern-contents">
@@ -18,8 +17,7 @@
       <figure class="tavern-photo tavern-photo--server" data-scene-photo>
         <img
           data-scene-image
-          data-img="tavern-server.jpg"
-          src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+          src="tavern-server.jpg"
           alt="Rød-håret tjener står ved bordet med et lys foran sig."
           loading="lazy"
         />
@@ -105,7 +103,6 @@
               "Hun smiler varmt og tager din bestilling, mens lyset fra stearinlysene spiller i hendes øjne.",
             image: {
               src: "tavern-server.jpg",
-              img: "tavern-server.jpg",
               alt: "Rød-håret tjener står ved bordet med et lys foran sig.",
             },
             photoModifier: null,
@@ -116,7 +113,6 @@
               "Hun vender tilbage med et skummende krus og skubber det roligt hen over bordet.",
             image: {
               src: "tavern-server-beer.jpg",
-              img: "tavern-server-beer.jpg",
               alt: "Tjeneren rækker dig et fyldt ølkrus i det varme lys.",
             },
             message: "Hun balancerer et fyldt ølkrus og sætter det foran dig.",
@@ -127,7 +123,6 @@
             description: "Hun smiler anerkendende og rækker dig et forsejlet brev.",
             image: {
               src: "tavern-server-letter.jpg",
-              img: "tavern-server-letter.jpg",
               alt: "Tjeneren holder et brev frem mod dig ved bordet.",
             },
             message: 'Hun hvisker: "Jeg skulle hilse fra broder Ras."',
@@ -138,7 +133,6 @@
             description: "Du folder brevet ud, mens den skjulte besked afsløres i flakkende lys.",
             image: {
               src: "tavern-server-letter-open.jpg",
-              img: "tavern-server-letter-open.jpg",
               alt: "Brev åbnet på bordet, oplyst af et stearinlys.",
             },
             message: 'Hun hvisker: "Håber at I får en god aften."',
@@ -202,13 +196,7 @@
           sceneHeading.textContent = scene.heading;
           sceneDescription.textContent = scene.description;
           sceneImage.src = scene.image.src;
-          sceneImage.setAttribute('data-img', scene.image.img);
           sceneImage.alt = scene.image.alt;
-          const imageData = JSON.parse(localStorage.getItem('oldBarrelImages') || '{}');
-          const imageName = scene.image.img.toLowerCase();
-          if (imageData[imageName]) {
-            sceneImage.src = imageData[imageName];
-          }
 
           if (scene.message) {
             orderMessage.textContent = scene.message;
